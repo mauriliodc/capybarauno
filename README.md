@@ -1,7 +1,11 @@
 # CapybaraUno
 ## Capybara Robot ros nodes for Indigo 
 
-### Inside:
+#### The capybara robot
+the capybara robot is an open source and open hardware differential drive robot. The firmware source is availabale https://github.com/mauriliodc/capybara
+
+#### Nodes provided
+
 * capybarauno_node
 
   the main node, it will subscribe to a capybarauno::ticks topic and communicate with the robot base requested a specific velocity (requested as left/right ticks) and publishes the robot ticks
