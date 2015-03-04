@@ -1,6 +1,6 @@
 # CapybaraUno
 ## Capybara Robot - ROS package for Indigo 
-(http://i.imgur.com/QOzCvIJ.jpg)
+![alt text](http://i.imgur.com/QOzCvIJ.jpg "Capybara")
 #### The capybara robot
 the capybara robot is an open source and open hardware differential drive robot. Powered by a dspic33fj128mc802 it provides an highly customizable firmware, a full extensible serial commands stack and an high speed PID control loop up to 1khz for each motor.
 
