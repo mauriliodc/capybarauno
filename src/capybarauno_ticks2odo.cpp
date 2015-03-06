@@ -5,6 +5,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 #include "capybarauno/capybara_ticks.h"
+#include "capybarauno/capybara_ticks_signed.h"
 #include "tf/transform_broadcaster.h"
 #include "nav_msgs/Odometry.h"
 
@@ -12,7 +13,7 @@
 using namespace std;
 
 ros::Publisher odom_pub;
-
+ros::Publisher ticks_publisher;
 
 capybarauno::capybara_ticks currentTicks;
 capybarauno::capybara_ticks previousTicks;
@@ -26,6 +27,7 @@ struct configuration{
     string kleft;
     string kright;
     string subscribed_ticks_topic;
+    string published_ticks_topic;
     string published_odometry_topic;
     string published_link_name;
     string published_odom_link_name;
@@ -65,6 +67,11 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
         t+=(rt*kr-lt*kl)/kb;
         x+=s*cos(t);
         y+=s*sin(t);
+        capybarauno::capybara_ticks_signed ct;
+        ct.leftEncoder=leftSignedTicks;
+        ct.rightEncoder=rightSignedTicks;
+	ct.header.stamp=ros::Time::now();
+        ticks_publisher.publish(ct);
 
     }
 
@@ -98,6 +105,7 @@ void EchoParameters(){
     printf("%s %s\n","_published_link_name",c.published_link_name.c_str());
     printf("%s %s\n","_published_odom_link_name",c.published_odom_link_name.c_str());
     printf("%s %s\n","_subscribed_ticks_topic",c.subscribed_ticks_topic.c_str());
+    printf("%s %s\n","_published_ticks_topic",c.published_ticks_topic.c_str());
     printf("%s %s\n","_kbaseline",c.kbaseline.c_str());
     printf("%s %s\n","_kleft",c.kleft.c_str());
     printf("%s %s\n","_kright",c.kright.c_str());
@@ -121,6 +129,7 @@ int main(int argc, char **argv)
     n.param<string>("kleft", c.kleft, "0.001f");
     n.param<string>("kright", c.kright, "0.001f");
 
+    n.param<string>("published_ticks_topic", c.published_ticks_topic, "/relative_signed_ticks");
     n.param<string>("published_odometry_topic", c.published_odometry_topic, "/odom");
     n.param<string>("published_link_name", c.published_link_name, "/base_link");
     n.param<string>("published_odom_link_name", c.published_odom_link_name, "/odom");
@@ -132,6 +141,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber ticks_subscriber = n.subscribe(c.subscribed_ticks_topic.c_str(), 1000, ticksCallback);
     odom_pub = n.advertise<nav_msgs::Odometry>(c.published_odometry_topic.c_str(), 1000);
+    ticks_publisher = n.advertise<capybarauno::capybara_ticks_signed>(c.published_ticks_topic.c_str(), 1000);
     while(ros::ok()){
         ros::spinOnce();
         sendOdometry(odom_broadcaster);
@@ -140,6 +150,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-
-

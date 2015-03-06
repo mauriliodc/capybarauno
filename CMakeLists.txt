@@ -47,6 +47,7 @@ add_definitions(-DTOPORAGNAROK)
  add_message_files(
    FILES
     capybara_ticks.msg
+    capybara_ticks_signed.msg
 )
 
 ## Generate services in the 'srv' folder
