@@ -14,6 +14,7 @@ using namespace std;
 
 ros::Publisher odom_pub;
 ros::Publisher ticks_publisher;
+uint32_t ticks_publisherSeq=0;
 
 capybarauno::capybara_ticks currentTicks;
 capybarauno::capybara_ticks previousTicks;
@@ -70,7 +71,9 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
         capybarauno::capybara_ticks_signed ct;
         ct.leftEncoder=leftSignedTicks;
         ct.rightEncoder=rightSignedTicks;
-	ct.header.stamp=ros::Time::now();
+        ct.header.stamp=ros::Time::now();
+        ct.header.seq=ticks_publisherSeq;
+        ticks_publisherSeq++;
         ticks_publisher.publish(ct);
 
     }
