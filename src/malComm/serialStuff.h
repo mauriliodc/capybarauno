@@ -20,5 +20,5 @@
 #ifndef SERIAL_UTILITIES
 #define SERIAL_UTILITIES
 
-int openPort(char* device);
+int openPort(const char* device);
 #endif
