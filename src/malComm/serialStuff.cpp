@@ -1,6 +1,6 @@
 #include "serialStuff.h"
 
-int openPort(char* device)
+int openPort(const char* device)
 {
   int flags=0;
   //read write

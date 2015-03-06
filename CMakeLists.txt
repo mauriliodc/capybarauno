@@ -102,16 +102,18 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(capybarauno_node src/capybarauno_node.cpp
-src/malComm/mal_primitives.cpp
-src/malComm/mal_comm.cpp
-src/malComm/configuration_payload.cpp
-src/malComm/dumb_payload.cpp
-src/malComm/init_payload.cpp
-src/malComm/dummy_payload.cpp
-src/malComm/speed_payload.cpp
-src/malComm/state_payload.cpp
-src/malComm/serialStuff.cpp
+add_executable(capybarauno_node
+    src/capybarauno_node.cpp
+    
+    src/malComm/mal_primitives.cpp
+    src/malComm/mal_comm.cpp
+    src/malComm/configuration_payload.cpp
+    src/malComm/dumb_payload.cpp
+    src/malComm/init_payload.cpp
+    src/malComm/dummy_payload.cpp
+    src/malComm/speed_payload.cpp
+    src/malComm/state_payload.cpp
+    src/malComm/serialStuff.cpp
 )
 target_link_libraries(capybarauno_node ${catkin_LIBRARIES} )
 
@@ -123,6 +125,45 @@ target_link_libraries(capybarauno_joy2ticks ${catkin_LIBRARIES} )
 
 add_executable(capybarauno_ticks2odo src/capybarauno_ticks2odo.cpp)
 target_link_libraries(capybarauno_ticks2odo ${catkin_LIBRARIES} )
+
+
+add_executable(capybarauno_odom_node
+    src/capybarauno_odom_node.cpp
+    
+    src/malComm/mal_primitives.cpp
+    src/malComm/mal_comm.cpp
+    #src/malComm/configuration_payload.cpp
+    src/malComm/dumb_payload.cpp
+    src/malComm/init_payload.cpp
+    src/malComm/dummy_payload.cpp
+    src/malComm/speed_payload.cpp
+    src/malComm/state_payload.cpp
+    src/malComm/serialStuff.cpp
+)
+
+add_executable(capybarauno_joy_node
+    src/capybarauno_joy_node.cpp
+    
+    src/malComm/mal_primitives.cpp
+    src/malComm/mal_comm.cpp
+    #src/malComm/configuration_payload.cpp
+    src/malComm/dumb_payload.cpp
+    src/malComm/init_payload.cpp
+    src/malComm/dummy_payload.cpp
+    src/malComm/speed_payload.cpp
+    src/malComm/state_payload.cpp
+    src/malComm/serialStuff.cpp
+)
+
+
+target_link_libraries(capybarauno_odom_node
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(capybarauno_joy_node
+   ${catkin_LIBRARIES}
+)
+
 
 #############
 ## Install ##
