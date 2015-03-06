@@ -49,6 +49,7 @@ void joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     ct.header.stamp=ros::Time::now();
     ct.header.seq=tick_sequence;
     tick_sequence++;
+    ticks_publisher.publish(ct);
 
 }
 
