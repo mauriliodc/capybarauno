@@ -74,6 +74,8 @@ class CapybaraunoJoy {
 		void init();
 		/// called when we receive a joystick message
 		void joyCallback( const sensor_msgs::Joy::ConstPtr& joy ) {
+			// debug message
+			printf( "." );
 			
 			// get absolute speed values, expressed in tick per interval
 			double trans_vel = joy->axes[config_.trans_axis_] * config_.trans_multiplier_;

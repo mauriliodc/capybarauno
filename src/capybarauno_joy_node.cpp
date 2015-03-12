@@ -69,7 +69,7 @@ void CapybaraunoJoy::init() {
 	nh_.param( "rot_axis", config_.rot_axis_, 2 );						// default: 2 ...
 	nh_.param( "boost_button", config_.boost_button_, 5 );				// default: 5 ...
 	nh_.param( "stop_button", config_.stop_button_, 4 );				// default: 4 ...
-	nh_.param( "dead_man_button", config_.dead_man_button_, -1 );		// default: -1 (-1 = don't use this feature/button)
+	nh_.param( "dead_man_button", config_.dead_man_button_, -1 );		// default: -1 (= don't use this feature/button)
 	
 	nh_.param( "trans_multiplier", config_.trans_multiplier_, 10.0 );	// default: 
 	nh_.param( "rot_multiplier", config_.rot_multiplier_, 5.0 );		// default: 
@@ -80,11 +80,11 @@ void CapybaraunoJoy::init() {
 	nh_.param<std::string>( "comm_port", config_.comm_port_, "/dev/ttyACM0" );		// address of the serial port
 	nh_.param( "comm_ascii", config_.comm_ascii_, 0 );								// ascii(=1) or binary(=0) communication on the serial
 	
-	nh_.param( "debug", config_.debug_, 1 );
+	nh_.param( "debug", config_.debug_, 0 );
 	
 	// subscribe to joystick topic
 	printf( "subscribing to topic '%s'\n", config_.joy_topic_.c_str() );
-	ros::Subscriber joy_sub_ = nh_.subscribe< sensor_msgs::Joy >( config_.joy_topic_.c_str(), 50, &CapybaraunoJoy::joyCallback, this );
+	joy_sub_ = nh_.subscribe< sensor_msgs::Joy >( config_.joy_topic_.c_str(), 50, &CapybaraunoJoy::joyCallback, this );
 	
 	// print configuration to the screen
 	config_.printParameters();

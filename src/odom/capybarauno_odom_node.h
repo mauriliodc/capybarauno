@@ -55,6 +55,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** @class object to handle the publishing of ros topics for the EncoderOdom object. also
  *         sets up the configuration object, based on the the set ROS parameters.
+ * 
+ * @note the tf topic has the link id and child link id hard-coded as 'odom' and 'base_link'.
+ * 
+ * @note if the tf topic publishing is enabled, the timestamps for the tf topic and the odom
+ *       topic are identical (and they are published with the same frequency).
  */
 class EncoderOdomNode {
 	
@@ -66,12 +71,12 @@ class EncoderOdomNode {
 			init();
 		}
 		
-		/// constructor for the case that ros::init has already been called
+		/// constructor for the case that ros::init has already been called (unused in the provided code)
 		EncoderOdomNode() : nh_("~"), encoder_odom_(config_) {
 			init();
 		}
 		
-		/// calls spinOnce in a loop
+		/// calls spinOnce in a loop, breaking when ros::ok returns false
 		void spin() {
 			//ros::ok() used to get the SIGINT ctrl+c
 			while( ros::ok() ) {
@@ -135,15 +140,19 @@ class EncoderOdomNode {
 			odom_msg.pose.pose.position.z = 0.0;
 			odom_msg.pose.pose.orientation = odom_quat;
 			
-			// set valocity
-			double it = 1.0 / dt.toSec();
+			// set velocity
+			double it = 1.0 / dt.toSec();	// inverse time since last odom publish
 			odom_msg.twist.twist.linear.x = (odom_pose.x_ - last_pose_.x_) * it;
 			odom_msg.twist.twist.linear.y = (odom_pose.y_ - last_pose_.y_) * it;
-			odom_msg.twist.twist.angular.z = 0.0;		// todo: compute this
+			odom_msg.twist.twist.angular.z = (odom_pose.theta_ - last_pose_.theta_) * it;
 			
 			last_pose_ = odom_pose;
 			
 			odom_pub_.publish( odom_msg );
+			
+			if( config_.debug_ > 0 ) {
+				printf( "\rodom: pos=<%+0.3f, %+0.3f>  theta=%0.1f" );
+			}
 		}
 	
 	
@@ -155,14 +164,14 @@ class EncoderOdomNode {
 			nh_.param( "wheel_radius", config_.wheel_radius_, 0.05 );						// default: radius=5cm
 			nh_.param( "encoder_count", config_.n_encoder_, 3600 );							// default: 10 ticks per 1.0 degree
 			nh_.param( "wheel_distance", config_.wheel_distance_, 0.2 );					// default: 20cm distance between the wheels
-			nh_.param<std::string>( "odom_topic", config_.odom_topic_, "odom" );			// unused at the moment
+			nh_.param<std::string>( "odom_topic", config_.odom_topic_, "odom" );			// topic name of the published odometry topic
 			nh_.param<std::string>( "comm_port", config_.comm_port_, "/dev/ttyACM0" );		// address of the serial port
 			nh_.param( "comm_ascii", config_.comm_ascii_, 0 );								// ascii(=1) or binary(=0) communication on the serial
 			nh_.param( "n_pub_updates", config_.n_pub_updates_, 50 );						// number of encoder updates read before we publish the ros topic
-			nh_.param( "publish_tf", config_.publish_tf_, 0 );								// if non-zero we publish the tf topic as well
-			nh_.param( "debug", config_.debug_, 1 );
+			nh_.param( "publish_tf", config_.publish_tf_, 0 );								// if non-zero, we publish the tf topic as well. default: don't publish
+			nh_.param( "debug", config_.debug_, 1 );										// if non-zero, we print a few more messages to the console
 			
-			// publish the odomerty with a queue size of 20
+			// advertise the odomerty with a queue size of 20
 			odom_pub_ = nh_.advertise< nav_msgs::Odometry >( config_.odom_topic_.c_str(), 20 );
 			
 			// print configuration to the screen
