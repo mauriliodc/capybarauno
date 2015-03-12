@@ -128,7 +128,6 @@ class EncoderOdom {
 		/// @brief constructor. the cfg object must be set before we can call init()
 		EncoderOdom( OdomConfig &cfg ) : config_(cfg) {
 			// init is not called here, because in general the OdomConfig object 'cfg' is not fully set when this constructor is called
-			//init();
 		}
 		
 		/// @brief initializes the object. called by all constructors.
@@ -233,11 +232,13 @@ class EncoderOdom {
 			old_ticks_left_ = ticks_left;
 			old_ticks_right_ = ticks_right;
 			
+			double factor = 2 * M_PI * config_.wheel_radius_ / config_.n_encoder_;
+			
 			// compute the movement. note: this is just an aproximation
-			double dwl = 2 * M_PI * delta_left * config_.wheel_radius_;			// delta movement in meter for the left wheel
-			double dwr = 2 * M_PI * delta_right * config_.wheel_radius_;		// delta movement in meter for the right wheel
-			double ds = ( dwl + dwr) / 2;										// delta s (distance moved)
-			double dtheta = (dwl-dwr) / config_.wheel_distance_;				// delta theta (rotation)
+			double dwl = delta_left * factor;					// delta movement in meter for the left wheel
+			double dwr = delta_right * factor;					// delta movement in meter for the right wheel
+			double ds = ( dwl + dwr) / 2;						// delta s (distance moved)
+			double dtheta = (dwl-dwr) / config_.wheel_distance_;// delta theta (rotation)
 			
 			// save in the objects member variables
 			odom_theta_ += dtheta;

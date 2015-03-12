@@ -151,7 +151,8 @@ class EncoderOdomNode {
 			odom_pub_.publish( odom_msg );
 			
 			if( config_.debug_ > 0 ) {
-				printf( "\rodom: pos=<%+0.3f, %+0.3f>  theta=%0.1f" );
+				// prints the odometry data to the screen, overwriting the previous line (no new line)
+				printf( "\rodom: pos=<%+0.3f, %+0.3f>  theta=%0.1f                 ", last_pose_.x_, last_pose_.y_, last_pose_.theta_ );
 			}
 		}
 	
