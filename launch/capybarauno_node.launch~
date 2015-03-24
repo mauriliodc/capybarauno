@@ -1,0 +1,15 @@
+<launch>
+	<arg name="serial_device" default="/dev/ttyACM0" />
+	<arg name="published_ticks_topic" default="/robot_ticks" />
+	<arg name="subscribed_ticks_topic" default="/requested_ticks" />
+	<arg name="debug" default="1" />
+	<arg name="ascii" default="1" />
+
+	<node name="capybarauno_node" pkg="capybarauno" type="capybarauno_node" outp="screen">
+		<param name="~serial_device" value="$(arg serial_device)"/> 
+		<param name="~published_ticks_topic" value="$(arg published_ticks_topic)"/> 
+		<param name="~subscribed_ticks_topic" value="$(arg subscribed_ticks_topic)"/>
+		<param name="~debug" value="$(arg debug)"/> 
+		<param name="~ascii" value="$(arg ascii)"/>  
+	</node>
+</launch>

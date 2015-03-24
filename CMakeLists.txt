@@ -117,15 +117,19 @@ add_executable(capybarauno_node
     src/malComm/serialStuff.cpp
 )
 target_link_libraries(capybarauno_node ${catkin_LIBRARIES} )
+add_dependencies(capybarauno_node ${PROJECT_NAME}_gencpp)
 
 add_executable(capybarauno_twist2ticks src/capybarauno_twist2ticks.cpp)
 target_link_libraries(capybarauno_twist2ticks ${catkin_LIBRARIES} )
+add_dependencies(capybarauno_twist2ticks ${PROJECT_NAME}_gencpp)
 
 add_executable(capybarauno_joy2ticks src/capybarauno_joy2ticks.cpp)
 target_link_libraries(capybarauno_joy2ticks ${catkin_LIBRARIES} )
+add_dependencies(capybarauno_joy2ticks ${PROJECT_NAME}_gencpp)
 
 add_executable(capybarauno_ticks2odo src/capybarauno_ticks2odo.cpp)
 target_link_libraries(capybarauno_ticks2odo ${catkin_LIBRARIES} )
+add_dependencies(capybarauno_ticks2odo ${PROJECT_NAME}_gencpp)
 
 
 add_executable(capybarauno_odom_node
