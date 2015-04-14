@@ -59,13 +59,14 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 
         float lt=(float)leftSignedTicks*atof(c.kleft.c_str());
         float rt=(float)rightSignedTicks*atof(c.kright.c_str());
-
+	cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
         float kb = atof(c.kbaseline.c_str());
         float kr = atof(c.kright.c_str());
         float kl = atof(c.kleft.c_str());
 
         float s = (lt*kl+rt*kr)/2;
         t+=(rt*kr-lt*kl)/kb;
+	cerr << "\ttheta: "<<t<<endl;
         x+=s*cos(t);
         y+=s*sin(t);
         capybarauno::capybara_ticks_signed ct;
@@ -81,7 +82,7 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 }
 
 void sendOdometry(tf::TransformBroadcaster& odom_broadcaster){
-    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(t);
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(-t);
     geometry_msgs::TransformStamped odom_trans;
     odom_trans.header.stamp = ros::Time::now();
     odom_trans.header.frame_id = c.published_odometry_topic.c_str();
