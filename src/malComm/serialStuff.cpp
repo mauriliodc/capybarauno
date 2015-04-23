@@ -1,5 +1,7 @@
 #include "serialStuff.h"
 
+/// opens a file (typically a serial port). note: this function uses the POSIX function 'open' instead of 'fopen'.
+/// returns -1 on error.
 int openPort(const char* device)
 {
   int flags=0;
@@ -34,4 +36,9 @@ int openPort(const char* device)
   newtio.c_cflag &= ~CRTSCTS;
   tcsetattr(m_fd, TCSANOW, &newtio);
   return m_fd;
+}
+
+/// closes the file (typically a serial port) that has been opened via openPort.
+void closePort(int fd) {
+  close(fd);
 }

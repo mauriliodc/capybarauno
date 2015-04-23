@@ -21,4 +21,6 @@
 #define SERIAL_UTILITIES
 
 int openPort(const char* device);
+void closePort(int fd);
+
 #endif
