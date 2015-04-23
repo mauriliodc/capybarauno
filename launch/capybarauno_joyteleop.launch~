@@ -1,0 +1,40 @@
+<launch>
+	<!-- args for the capybarauno node-->
+	<arg name="serial_device" default="/dev/ttyACM0" />
+	<arg name="published_ticks_topic" default="/robot_ticks" />
+	<arg name="subscribed_ticks_topic" default="/requested_ticks" />
+	<arg name="debug" default="1" />
+	<arg name="ascii" default="1" />
+	<!-- args for the joy2ticks-->
+	<arg name="translational_axis" default="1" />
+	<arg name="rotational_axis" default="3" />
+	<arg name="boost_button" default="5" />
+	<arg name="stop_button" default="4" />
+	<arg name="translational_multiplier" default="50" />
+	<arg name="rotational_multiplier" default="50" />
+	<arg name="boost_multiplier" default="2" />
+
+	<!-- capybarauno launch file -->
+	<include file="$(find capybarauno)/launch/capybarauno_node.launch">
+		<arg name="serial_device" value="$(arg serial_device)"/>
+		<arg name="published_ticks_topic" value="$(arg published_ticks_topic)" />
+		<arg name="subscribed_ticks_topic" value="$(arg subscribed_ticks_topic)" />
+		<arg name="debug" value="$(arg debug)" />
+		<arg name="ascii" value="$(arg ascii)" />
+	</include>
+
+	<!-- joypad node, ros default 
+	<node name="joy" pkg="joy" type="joy_node" output="screen"/>
+
+	 joy message to tick message 
+	<node name="capybarauno_joy2ticks" pkg="capybarauno" type="capybarauno_joy2ticks" output="screen">
+		<param name="~translational_axis" value="$(arg translational_axis)"/> 
+		<param name="~rotational_axis" value="$(arg rotational_axis)"/> 
+		<param name="~boost_button" value="$(arg boost_button)"/> 
+		<param name="~stop_button" value="$(arg stop_button)"/> 
+		<param name="~translational_multiplier" value="$(arg translational_multiplier)"/> 
+		<param name="~rotational_multiplier" value="$(arg rotational_multiplier)"/> 
+		<param name="~boost_multiplier" value="$(arg boost_multiplier)"/> 
+	</node>
+	-->
+</launch>

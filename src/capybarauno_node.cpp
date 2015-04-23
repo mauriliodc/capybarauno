@@ -15,7 +15,6 @@ struct Packet_Decoder packet_decoder;
 struct Packet packet;
 struct Speed_Payload speedPayload;
 struct State_Payload statePayload;
-int ascii=1;
 
 ros::Publisher ticks_publisher;
 
@@ -23,6 +22,7 @@ struct configuration{
     string serial_device;
     string published_ticks_topic;
     string subscribed_ticks_topic;
+    int ascii;
     int debug;
 
 };
@@ -37,7 +37,7 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
     //assign the payload to the general packet
     packet.speed=speedPayload;
     char buf[255];
-    char* pEnd=Packet_write(&packet,buf,ascii);
+    char* pEnd=Packet_write(&packet,buf,c.ascii);
     //send it
     sendToUart(serialFd,buf,pEnd-buf,0);
     if(c.debug){
@@ -47,21 +47,21 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 
 
 Packet read_ticks_from_uart(int serialDevice, Packet_Decoder& decoder){
-    char c;
+    char chunk;
     int complete=0;
     Packet read_packet;
-    while(read(serialDevice, &c, 1)>0 && !complete){
-        complete = Packet_Decoder_putChar(&decoder,(unsigned char)c);
+    while(read(serialDevice, &chunk, 1)>0 && !complete){
+        complete = Packet_Decoder_putChar(&decoder,(unsigned char)chunk);
     }
     if(complete){
-        Packet_parse(decoder.buffer_start,&read_packet,ascii);
+        Packet_parse(decoder.buffer_start,&read_packet,c.ascii);
     }
     return read_packet;
 }
 
 void RobotCommunication_init(){
     initConsts();
-    Packet_Decoder_init(&packet_decoder,ascii);
+    Packet_Decoder_init(&packet_decoder,c.ascii);
     packet.id=Speed_Payload_ID;
     serialFd=openPort((char*)c.serial_device.c_str());
     if(c.debug){
@@ -73,6 +73,7 @@ void EchoParameters(){
     printf("%s %s\n","_published_ticks_topic",c.published_ticks_topic.c_str());
     printf("%s %s\n","_subscribed_ticks_topic",c.subscribed_ticks_topic.c_str());
     printf("%s %s\n","_serial_device",c.serial_device.c_str());
+    printf("%s %d\n","_ascii",c.ascii);
     printf("%s %d\n","_debug",c.debug);
 }
 
@@ -85,6 +86,7 @@ int main(int argc, char **argv)
     n.param<string>("serial_device", c.serial_device, "/dev/ttyACM0");
     n.param<string>("published_ticks_topic", c.published_ticks_topic, "/robot_ticks");
     n.param<string>("subscribed_ticks_topic", c.subscribed_ticks_topic, "/requested_ticks");
+    n.param<int>("ascii", c.ascii, 1);
     n.param("debug", c.debug, 1);
 
     EchoParameters();
