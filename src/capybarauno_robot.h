@@ -34,99 +34,61 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 
-// I N C L U D E S
+// H E A D E R S
 //
 //
 
 // project headers
-#include "capybarauno_move.h"
-
-// ROS headers
-#include "ros/ros.h"
-#include "sensor_msgs/Joy.h"
+#include "odom/capybarauno_odom.h"
+#include "joy/capybarauno_move.h"
 
 
-
-
-// C L A S S E S
-//
-//
-
-
-
-/** @class ros node to forward joystick commands as movement commands to the micro controller. */
-class CapybaraunoJoy {
+/// @class a class that combines the config for the odometry and the move/joystick classes
+class CapybaraunoConfig : public JoyConfig, public OdomConfig {
 	public:
-		CapybaraunoJoy() : nh_("~"), move_(config_) {
-			init();
+		void printParameters() {
+			JoyConfig::printParameters();
+			OdomConfig::printParameters();
 		}
-		void spin( void ) {
-			while( ros::ok() ) {
-				/// todo: check when we last received the button-pressed message from the dead man switch and stop the robot if necessary.
-				ros::spinOnce();
-				usleep( 1000 );
-			}
-		}
-		
-	protected:
-		
-		/// initializes the object
-		void init();
-		/// called when we receive a joystick message
-		void joyCallback( const sensor_msgs::Joy::ConstPtr& joy ) {
-			// debug message
-			printf( "." );
-			
-			// get absolute speed values, expressed in tick per interval
-			double trans_vel = joy->axes[config_.trans_axis_] * config_.trans_multiplier_;
-			double rot_vel = joy->axes[config_.rot_axis_] * config_.rot_multiplier_;
-			
-			// check if boost button is pressed
-			if( joy->buttons[config_.boost_button_] == 1 ) {
-				trans_vel *= config_.boost_multiplier_;
-				rot_vel *= config_.boost_multiplier_;
-			}
-			
-			// now check if the stop button is pressed to halt the robot
-			/// todo: gradualy halt over a fixed time frame, instead of trying a full stop at an instant
-			if( joy->buttons[config_.stop_button_] == 1 ){
-				trans_vel = 0;
-				rot_vel = 0;
-			}
-			
-			move_.sendSpeedCmd( trans_vel, rot_vel );
-		}
-		
-		/// node handle that is used in this class.
-		ros::NodeHandle nh_;
-		/// configuration object
-		JoyConfig config_;
-		/// object to send the move commands to the micro controller
-		CapybaraunoMove move_;
-		/// ros subscriber to joystick topic
-		ros::Subscriber joy_sub_;
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/// @class interface class to use the robot: combines odometry and movement into a single class.
+class CapybaraunoRobot {
+	public:
+		/// @brief constructor, that passes the config to the sub-components
+		CapybaraunoRobot( CapybaraunoConfig config ) : config_(config), odom_(config_), move_(config_) {};
+		
+		/// @brief initializes the object. should only be called when the config has been fully populated
+		void init() {
+			// initializes the odometry and the move object, which sets up the serial communication with the microcontroller
+			if( !move_.init() )
+				exit( 0 );
+			if( !odom_.init() )
+				exit( 0 );
+		}
+		
+		/// @brief returns the current odometry via references
+		void getOdometry( double &x, double &y, double &theta ) {
+			OdomPose2d pose = odom_.getPose();
+			x = pose.x_;
+			y = pose.y_;
+			theta = pose.theta_;
+		}
+		
+		/// @brief sends a 'speed' command to the microcontroller. the parameter tv is the translational velocity, rv is the rotation speed
+		void setSpeed( double &tv, double &rv ) {
+			move_.sendSpeedCmd( tv*1000, rv*1000 );
+		}
+		
+	protected:
+		/// @brief object holding the config for this class
+		CapybaraunoConfig config_;
+		/// @brief object to handle the odometry
+		EncoderOdom odom_;
+		/// @brief object to send movement commands to the robot
+		CapybaraunoMove move_;
+};
 
 
 

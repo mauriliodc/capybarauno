@@ -41,8 +41,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 // project headers
-#include "../malComm/mal_comm.h"
-#include "../malComm/mal_primitives.h"
+//#include "../malComm/mal_comm.h"
+//#include "../malComm/mal_primitives.h"
+#include "../serial_interface.h"
 
 
 // C++ headers
@@ -127,11 +128,11 @@ class CapybaraunoMove {
 		/** @brief should be called when the config has been populated. initializes the object, including
 		 *         opening the serial port.
 		 */
-		void init() {
-			initComm();
+		bool init() {
+			return initComm();
 		}
 		
-		/** @brief this function takes the translationl and rotaional velocities and sends the "speed"
+		/** @brief this function takes the translational and rotaional velocities and sends the "speed"
 		 *         command via the serial interface.
 		 */
 		void sendSpeedCmd( double trans_vel, double rot_vel ) {
@@ -172,7 +173,8 @@ class CapybaraunoMove {
 		bool initComm( void ) {
 			initConsts();
 			
-			serial_fd_ = openPort( config_.comm_port_.c_str() );
+			//serial_fd_ = openPort( config_.comm_port_.c_str() );
+			serial_fd_ = SerialInterface::open( config_.comm_port_.c_str() );
 			
 			if( serial_fd_ == -1 ) {
 				printf( "ERROR: failed to open port '%s'\n", config_.comm_port_.c_str() );
@@ -185,7 +187,7 @@ class CapybaraunoMove {
 			// set the packet id to indicate that it holds speed commands
 			packet_.id = Speed_Payload_ID;
 
-			return serial_fd_ ? true : false;
+			return (serial_fd_ == -1) ? false : true;
 		}
 		
 		/// configuration object

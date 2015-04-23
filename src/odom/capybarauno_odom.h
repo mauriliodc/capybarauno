@@ -41,8 +41,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 // project headers
-#include "../malComm/mal_comm.h"
-#include "../malComm/mal_primitives.h"
+//#include "../malComm/mal_comm.h"
+//#include "../malComm/mal_primitives.h"
+#include "../serial_interface.h"
 
 
 // C++ headers
@@ -68,7 +69,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @class class to put all the parameters for the project into a single object. */
 class OdomConfig {
 	public:
-		/// number of encoder readings for a full rotation, i.e. how many ticks translate to a 360 degree rotation.
+		/// number of encoder readings for a full rotation, i.e. how many encoder ticks translate to a 360 degree rotation.
 		int n_encoder_;
 		/// radius of the wheels
 		double wheel_radius_;
@@ -128,11 +129,10 @@ class EncoderOdom {
 		/// @brief constructor. the cfg object must be set before we can call init()
 		EncoderOdom( OdomConfig &cfg ) : config_(cfg) {
 			// init is not called here, because in general the OdomConfig object 'cfg' is not fully set when this constructor is called
-			//init();
 		}
 		
 		/// @brief initializes the object. called by all constructors.
-		void init( void ) {
+		bool init( void ) {
 			// set encoder ticks to zero
 			old_ticks_left_ = 0;
 			old_ticks_right_ = 0;
@@ -143,10 +143,10 @@ class EncoderOdom {
 			odom_theta_ = 0.0;
 			
 			// setup the serial connection
-			initComm();
+			return initComm();
 		}
 		
-		/** @brief performs all the action for a single spin, i.e. read from uart, compute odometry on
+		/** @brief performs all the actions for a single spin, i.e. read from uart, compute odometry on
 		 *         updates, and publishes the odom topic periodically.
 		 * 
 		 * @return 0	no update (did not receive a full packet via serial)
@@ -181,7 +181,8 @@ class EncoderOdom {
 		bool initComm( void ) {
 			initConsts();
 			Packet_Decoder_init( &packet_decoder_, config_.comm_ascii_ );
-			serial_fd_ = openPort( config_.comm_port_.c_str() );
+			//serial_fd_ = openPort( config_.comm_port_.c_str() );
+			serial_fd_ = SerialInterface::open( config_.comm_port_.c_str() );
 			
 			if( serial_fd_ == -1 ) {
 				printf( "ERROR: failed to open port '%s'\n", config_.comm_port_.c_str() );
@@ -191,7 +192,7 @@ class EncoderOdom {
 				printf( "serial port status: %d\n", serial_fd_ );
 			}
 			
-			return serial_fd_ ? true : false;
+			return (serial_fd_ == -1) ?  false : true;
 		}
 		
 		/// reads from the serial interface. if a packet has been fully read and parsed, we return 1, otherwise we return 0.
@@ -233,11 +234,13 @@ class EncoderOdom {
 			old_ticks_left_ = ticks_left;
 			old_ticks_right_ = ticks_right;
 			
+			double factor = 2 * M_PI * config_.wheel_radius_ / config_.n_encoder_;
+			
 			// compute the movement. note: this is just an aproximation
-			double dwl = 2 * M_PI * delta_left * config_.wheel_radius_;			// delta movement in meter for the left wheel
-			double dwr = 2 * M_PI * delta_right * config_.wheel_radius_;		// delta movement in meter for the right wheel
-			double ds = ( dwl + dwr) / 2;										// delta s (distance moved)
-			double dtheta = (dwl-dwr) / config_.wheel_distance_;				// delta theta (rotation)
+			double dwl = delta_left * factor;					// delta movement in meter for the left wheel
+			double dwr = delta_right * factor;					// delta movement in meter for the right wheel
+			double ds = ( dwl + dwr) / 2;						// delta s (distance moved)
+			double dtheta = (dwl-dwr) / config_.wheel_distance_;// delta theta (rotation)
 			
 			// save in the objects member variables
 			odom_theta_ += dtheta;
