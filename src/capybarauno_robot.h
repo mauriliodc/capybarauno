@@ -81,6 +81,16 @@ class CapybaraunoRobot {
 			move_.sendSpeedCmd( tv*1000, rv*1000 );
 		}
 		
+		void spinOnce() {
+			odom_.spinOnce();
+		}
+		
+		void spin() {
+			while( true ) {
+				spinOnce();
+			}
+		}
+		
 	protected:
 		/// @brief object holding the config for this class
 		CapybaraunoConfig config_;
