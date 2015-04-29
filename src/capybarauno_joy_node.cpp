@@ -42,7 +42,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 // project headers
-#include "joy/capybarauno_joy.h"
 #include "joy/capybarauno_joy_node.h"
 
 

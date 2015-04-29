@@ -41,8 +41,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 // project headers
-#include "../malComm/mal_comm.h"
-#include "../malComm/mal_primitives.h"
+//#include "../malComm/mal_comm.h"
+//#include "../malComm/mal_primitives.h"
+#include "../serial_interface.h"
 
 
 // C++ headers
@@ -131,7 +132,7 @@ class EncoderOdom {
 		}
 		
 		/// @brief initializes the object. called by all constructors.
-		void init( void ) {
+		bool init( void ) {
 			// set encoder ticks to zero
 			old_ticks_left_ = 0;
 			old_ticks_right_ = 0;
@@ -142,7 +143,7 @@ class EncoderOdom {
 			odom_theta_ = 0.0;
 			
 			// setup the serial connection
-			initComm();
+			return initComm();
 		}
 		
 		/** @brief performs all the actions for a single spin, i.e. read from uart, compute odometry on
@@ -180,7 +181,8 @@ class EncoderOdom {
 		bool initComm( void ) {
 			initConsts();
 			Packet_Decoder_init( &packet_decoder_, config_.comm_ascii_ );
-			serial_fd_ = openPort( config_.comm_port_.c_str() );
+			//serial_fd_ = openPort( config_.comm_port_.c_str() );
+			serial_fd_ = SerialInterface::open( config_.comm_port_.c_str() );
 			
 			if( serial_fd_ == -1 ) {
 				printf( "ERROR: failed to open port '%s'\n", config_.comm_port_.c_str() );
@@ -190,7 +192,7 @@ class EncoderOdom {
 				printf( "serial port status: %d\n", serial_fd_ );
 			}
 			
-			return serial_fd_ ? true : false;
+			return (serial_fd_ == -1) ?  false : true;
 		}
 		
 		/// reads from the serial interface. if a packet has been fully read and parsed, we return 1, otherwise we return 0.

@@ -34,81 +34,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 
-// I N C L U D E S
+#pragma once
+
+// H E A D E R S
 //
 //
 
 // project headers
-#include "capybarauno_move.h"
+#include "malComm/mal_comm.h"
+#include "malComm/mal_primitives.h"
 
-// ROS headers
-#include "ros/ros.h"
-#include "sensor_msgs/Joy.h"
-
-
-
-
-// C L A S S E S
-//
-//
+// C++ headers
+#include <map>
 
 
 
-/** @class ros node to forward joystick commands as movement commands to the micro controller. */
-class CapybaraunoJoy {
+
+/** @class this class holds information about the open file (a 'reference counter' and the handle/identifier) */
+class SerialFileHandle {
 	public:
-		CapybaraunoJoy() : nh_("~"), move_(config_) {
-			init();
-		}
-		void spin( void ) {
-			while( ros::ok() ) {
-				/// todo: check when we last received the button-pressed message from the dead man switch and stop the robot if necessary.
-				ros::spinOnce();
-				usleep( 1000 );
-			}
-		}
-		
-	protected:
-		
-		/// initializes the object
-		void init();
-		/// called when we receive a joystick message
-		void joyCallback( const sensor_msgs::Joy::ConstPtr& joy ) {
-			// debug message
-			printf( "." );
-			
-			// get absolute speed values, expressed in tick per interval
-			double trans_vel = joy->axes[config_.trans_axis_] * config_.trans_multiplier_;
-			double rot_vel = joy->axes[config_.rot_axis_] * config_.rot_multiplier_;
-			
-			// check if boost button is pressed
-			if( joy->buttons[config_.boost_button_] == 1 ) {
-				trans_vel *= config_.boost_multiplier_;
-				rot_vel *= config_.boost_multiplier_;
-			}
-			
-			// now check if the stop button is pressed to halt the robot
-			/// todo: gradualy halt over a fixed time frame, instead of trying a full stop at an instant
-			if( joy->buttons[config_.stop_button_] == 1 ){
-				trans_vel = 0;
-				rot_vel = 0;
-			}
-			
-			move_.sendSpeedCmd( trans_vel, rot_vel );
-		}
-		
-		/// node handle that is used in this class.
-		ros::NodeHandle nh_;
-		/// configuration object
-		JoyConfig config_;
-		/// object to send the move commands to the micro controller
-		CapybaraunoMove move_;
-		/// ros subscriber to joystick topic
-		ros::Subscriber joy_sub_;
+		/// how many times the file has been opened without being closed
+		int n_open_;
+		/// the handle/identifier that was returned by the posix open() function
+		int handle_;
 };
 
 
 
+/** @class this class returns handles to the file (serial port) via the open() method. it allows multiple connections to a single serial port. it does however not
+ *         manage the read/write operations, so in a typical scenario, you would want at most one read-only connection opened and one write-only connection opened,
+ *         since read and write act like a seek operation, incrementing the index.
+ */
+class SerialInterface {
+	public:
+		/// opens a serial connection if it is not already open. it then returns the file handle of the open serial connection. returns -1 on errors.
+		static int open( const char *addr );
+		
+		/// reduces the 'open' count on the open serial connection. closes the connection, if the 'open' count reaches zero.
+		static void close( int fd );
+		
+	protected:
+};
 
 
 
