@@ -78,6 +78,7 @@ int main( int argc, char **argv ) {
 	while( true ) {
 		a++;
 		b++;
+		robot.spinOnce();
 		robot.getOdometry( x, y, theta );
 		
 		double t = (double)((a%1000)-500) / 100000;
