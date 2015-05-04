@@ -5,7 +5,7 @@ extern struct Heartbeat heartbeat;
 char* Heartbeat_Payload_write(const struct Packet* p, char* buffer, int ascii){
 //BinaryMode
   if (!ascii) {
-    uint8_t lenght = 2;
+    uint8_t lenght = 7;
     //PACKET LENGTH
     buffer = writeUint8(lenght, buffer);
     //PACKET ID
