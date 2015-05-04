@@ -7,6 +7,7 @@ uint8_t Dumb_Payload_ID;
 uint8_t State_Payload_ID;
 uint8_t Init_Payload_ID;
 uint8_t Speed_Payload_ID;
+uint8_t Heartbeat_Payload_ID;
 char packet_decoder_binary_header_1;
 char packet_decoder_binary_header_2;
 char packet_decoder_ascii_header;
@@ -21,6 +22,7 @@ void initConsts() {
     State_Payload_ID = 3;
     Init_Payload_ID = 4;
     Speed_Payload_ID = 5;
+    Heartbeat_Payload_ID = 6;
     packet_decoder_binary_header_1 = 0xaa;
     packet_decoder_binary_header_2 = 0x55;
     packet_decoder_ascii_header = '(';
@@ -91,8 +93,8 @@ int Packet_Decoder_putChar(struct Packet_Decoder* d, char c) {
             d->status = Unsync;
         }
     }        //-----------------------------------------------------
-        //ascii mode
-        //-----------------------------------------------------
+    //ascii mode
+    //-----------------------------------------------------
     else if (d->ascii == 1) {
         if (d->status == Unsync) {
             //clear the buffer
@@ -149,6 +151,9 @@ char* Packet_write(const struct Packet* p, char* buffer, int ascii) {
     } else if (p->id == Init_Payload_ID) {
         buffPtr = buffer;
         buffer = Init_Payload_write(p, buffer, ascii);
+    }else if (p->id == Heartbeat_Payload_ID) {
+        buffPtr = buffer;
+        buffer = Heartbeat_Payload_write(p, buffer, ascii);
     }
     //Binary mode, has to compute the checksum
     if (!ascii) {
@@ -179,6 +184,8 @@ char* Packet_parse(char* buffer, struct Packet* p, int ascii) {
         Speed_Payload_read(p, buffer, ascii);
     } else if (id == Init_Payload_ID) {
         Init_Payload_read(p, buffer, ascii);
+    }else if (id == Heartbeat_Payload_ID) {
+        Heartbeat_Payload_read(p, buffer, ascii);
     }
     return buffer;
 }
@@ -196,6 +203,8 @@ int Packet_execute(struct Packet* p) {
         Speed_Payload_execute(p);
     } else if (p->id == Init_Payload_ID) {
         Init_Payload_execute(p);
+    }else if (p->id == Heartbeat_Payload_ID) {
+        Heartbeat_Payload_execute(p);
     }
     return p->id;
 }

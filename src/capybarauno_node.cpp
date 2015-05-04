@@ -11,10 +11,15 @@
 using namespace std;
 
 int serialFd;
+int beatcnt=0;
+int beatingheart=0;
 struct Packet_Decoder packet_decoder;
 struct Packet packet;
 struct Speed_Payload speedPayload;
 struct State_Payload statePayload;
+//heartbeat stuff
+struct Packet heartbeat_packet;
+struct Heartbeat_Payload heartbeat;
 
 ros::Publisher ticks_publisher;
 
@@ -69,6 +74,26 @@ void RobotCommunication_init(){
     }
 }
 
+void send_heartbeat(int &cnt){
+    if(cnt%50==0){
+        heartbeat_packet.seq++;
+        char heartbuff[255];
+        char* pEnd=Packet_write(&heartbeat_packet,heartbuff,c.ascii);
+        sendToUart(serialFd,heartbuff,pEnd-heartbuff,0);
+        const char heart_1[] = "\xe2\x99\xa1";
+        const char heart_2[] = "\xe2\x99\xa5";
+        if(beatingheart){
+            printf("%s\n",heart_1);
+            beatingheart=0;
+        }else{
+            printf("%s\n",heart_2);
+            beatingheart=1;
+        }
+
+    }
+    cnt++;
+}
+
 void EchoParameters(){
     printf("%s %s\n","_published_ticks_topic",c.published_ticks_topic.c_str());
     printf("%s %s\n","_subscribed_ticks_topic",c.subscribed_ticks_topic.c_str());
@@ -79,8 +104,6 @@ void EchoParameters(){
 
 int main(int argc, char **argv)
 {
-
-
     ros::init(argc, argv, "capybarauno_node",ros::init_options::AnonymousName);
     ros::NodeHandle n("~");
     n.param<string>("serial_device", c.serial_device, "/dev/ttyACM0");
@@ -91,6 +114,11 @@ int main(int argc, char **argv)
 
     EchoParameters();
     RobotCommunication_init();
+
+    heartbeat.beat=1;
+    heartbeat_packet.id=Heartbeat_Payload_ID;
+    heartbeat_packet.seq=0;
+    heartbeat_packet.heartbeat=heartbeat;
 
     ros::Subscriber ticks_subscriber = n.subscribe(c.subscribed_ticks_topic.c_str(), 1000, ticksCallback);
     ticks_publisher = n.advertise<capybarauno::capybara_ticks>(c.published_ticks_topic.c_str(), 1000);
@@ -104,7 +132,7 @@ int main(int argc, char **argv)
         ticks_message.leftEncoder = robot_data.state.leftEncoder;
         ticks_message.rightEncoder = robot_data.state.rightEncoder;
         ticks_publisher.publish(ticks_message);
-
+        send_heartbeat(beatcnt);
         ros::spinOnce();
         usleep(1000);
     }

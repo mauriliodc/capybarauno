@@ -60,6 +60,15 @@ struct Init_Payload {
 };
 
 
+//HEARBEAT PACKET
+//==============================================================================
+//DESCRIPTION HERE
+extern uint8_t Heartbeat_Payload_ID;
+struct Heartbeat_Payload {
+    uint16_t beat;
+};
+
+
 //SPEED PACKET
 //==============================================================================
 //Speed packet is used by the client to request a specific speed on the motors
@@ -108,6 +117,7 @@ struct Packet {
         struct State_Payload state;
         struct Init_Payload init;
         struct Speed_Payload speed;
+        struct Heartbeat_Payload heartbeat;
     };
 };
 
@@ -175,6 +185,11 @@ void Init_Payload_execute(struct Packet* p);
 char* Speed_Payload_write(const struct Packet* p, char* buffer, int ascii);
 char* Speed_Payload_read(struct Packet* p, char* buffer, int ascii);
 void Speed_Payload_execute(struct Packet* p);
+//==============================================================================
+//[WR]HEARTBEAT PACKET
+char* Heartbeat_Payload_write(const struct Packet* p, char* buffer, int ascii);
+char* Heartbeat_Payload_read(struct Packet* p, char* buffer, int ascii);
+void Heartbeat_Payload_execute(struct Packet* p);
 //==============================================================================
 
 //DECODER STUFF
