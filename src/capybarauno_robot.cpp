@@ -53,14 +53,53 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main( int argc, char **argv ) {
 	CapybaraunoConfig config;
 	
+	// set default values in the config
+	config.JoyConfig::comm_port_ = config.OdomConfig::comm_port_ = "/dev/ttyACM0";
+	config.JoyConfig::comm_ascii_ = config.OdomConfig::comm_ascii_ = 0;
+	config.JoyConfig::debug_ = config.OdomConfig::debug_ = 1;
+	
+	config.n_encoder_ = 3600;		// 10 encoder readings for every degree
+	config.wheel_radius_ = 0.05;	// 5 cm wheel radius
+	config.wheel_distance_ = 0.4;	// 40 cm distance between the wheels
+	config.odom_topic_ = "";		// not runnning as a ROS node, so no topic name
+	config.n_pub_updates_ = 0;		// not relevant, because we are not running as a ROS node
+	config.publish_tf_ = 0;			// not relevant, because we are not running as a ROS node
+	
+	config.trans_axis_ = 0;			// ignored, because we are not reading joystick input
+	config.rot_axis_ = 0;			// ignored, because we are not reading joystick input
+	config.boost_button_ = 0;		// ignored, because we are not reading joystick input
+	config.stop_button_ = 0;		// ignored, because we are not reading joystick input
+	config.dead_man_button_ = 0;	// ignored, because we are not reading joystick input
+	config.trans_multiplier_ = 1.0;	// multiplier to adjust speed commands to your robot (translational movement speed)
+	config.rot_multiplier_ = 1.0;	// multiplier to adjust speed commands to your robot (rotation speed)
+	config.boost_multiplier_ = 2.0;	// ignored, because we are not reading joystick input
+	config.joy_topic_ = "";			// ignored, because we are not running as a ROS node
+	
+	// read command line options
 	for( int i=0; i<argc; i++ ) {
 		if( !strcmp(argv[i], "comm_port") ) {
 			i++;
 			config.JoyConfig::comm_port_ = argv[i];
 			config.OdomConfig::comm_port_ = argv[i];
 		} else if( !strcmp(argv[i], "comm_ascii") ) {
+			i++;
 			config.JoyConfig::comm_ascii_ = atoi( argv[i] );
 			config.OdomConfig::comm_ascii_ = atoi( argv[i] );
+		} else if( !strcmp(argv[i], "n_encoder") ) {
+			i++;
+			config.n_encoder_ = atoi( argv[i] );
+		} else if( !strcmp(argv[i], "wheel_radius") ) {
+			i++;
+			config.wheel_radius_ = atof( argv[i] );
+		} else if( !strcmp(argv[i], "trans_multiplier") ) {
+			i++;
+			config.trans_multiplier_ = atof( argv[i] );
+		} else if( !strcmp(argv[i], "rot_multiplier") ) {
+			i++;
+			config.rot_multiplier_ = atof( argv[i] );
+		} else if( !strcmp(argv[i], "debug") ) {
+			i++;
+			config.JoyConfig::comm_ascii_ = config.OdomConfig::comm_ascii_ = atoi( argv[i] );
 		}
 	}
 	
@@ -74,18 +113,33 @@ int main( int argc, char **argv ) {
 	//
 	double x=0.0, y=0.0, theta=0.0;		// current position
 	double tv=0.0, rv=0.0;				// current requested speed
-	int a=0, b=0;						// counters
+	int a=500, b=200;					// counters
 	while( true ) {
 		a++;
 		b++;
-		robot.spinOnce();
 		robot.getOdometry( x, y, theta );
 		
-		double t = (double)((a%1000)-500) / 100000;
+		double t = (double)((a%1000)-500) / 8000000.0;
 		tv += t;
+		t = (double)((b%400)-200) / 20000000.0;
+		rv += t;
+		
+		// cap max speed
+		if( tv > 0.5 )
+			tv = 0.5;
+		if( tv < -0.5 )
+			tv = -0.5;
+		if( rv > 0.5 )
+			rv = 0.5;
+		if( rv < -0.5 )
+			rv = -0.5;
+		
 		robot.setSpeed( tv, rv );
 		printf( "\rodom: <%f, %f, %f>, speed: <%f %f>            ", x, y, theta, tv, rv );
-		usleep( 100000 );
+		for( int i=0; i<2; i++ ) {
+			robot.spinOnce();
+			usleep( 1000 );
+		}
 	}
 	//
 	// end of test code

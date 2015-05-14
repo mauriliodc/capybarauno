@@ -208,6 +208,7 @@ class EncoderOdom {
 			// read the packet
 			if( complete ) {
 				Packet_parse( packet_decoder_.buffer_start, &packet, config_.comm_ascii_ );
+				//printf( "@" );
 			}
 			
 			return complete;

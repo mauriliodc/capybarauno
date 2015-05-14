@@ -166,8 +166,24 @@ add_executable(capybarauno_joy_node
 )
 
 add_executable(capybarauno_robot_test
-    
     src/capybarauno_robot.cpp
+    
+    src/serial_interface.cpp
+    src/malComm/mal_primitives.cpp
+    src/malComm/mal_comm.cpp
+    #src/malComm/configuration_payload.cpp
+    src/malComm/dumb_payload.cpp
+    src/malComm/init_payload.cpp
+    src/malComm/dummy_payload.cpp
+    src/malComm/speed_payload.cpp
+    src/malComm/state_payload.cpp
+    src/malComm/serialStuff.cpp
+)	
+
+
+add_executable(capybarauno_move_test
+    src/joy/capybarauno_move_test.cpp
+    
     src/serial_interface.cpp
     src/malComm/mal_primitives.cpp
     src/malComm/mal_comm.cpp
