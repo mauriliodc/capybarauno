@@ -47,6 +47,7 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
     sendToUart(serialFd,buf,pEnd-buf,0);
     if(c.debug){
         printf("SENDING: %s\n",buf);
+	fflush(stdout);
     }
 }
 
@@ -71,24 +72,20 @@ void RobotCommunication_init(){
     serialFd=openPort((char*)c.serial_device.c_str());
     if(c.debug){
         printf("serial port status: %d\n",serialFd);
+	fflush(stdout);
     }
 }
 
 void send_heartbeat(int &cnt){
-    if(cnt%50==0){
+    if(cnt%2==0){
         heartbeat_packet.seq++;
         char heartbuff[255];
         char* pEnd=Packet_write(&heartbeat_packet,heartbuff,c.ascii);
         sendToUart(serialFd,heartbuff,pEnd-heartbuff,0);
-        const char heart_1[] = "\xe2\x99\xa1";
-        const char heart_2[] = "\xe2\x99\xa5";
-        if(beatingheart){
-            printf("%s\n",heart_1);
-            beatingheart=0;
-        }else{
-            printf("%s\n",heart_2);
-            beatingheart=1;
-        }
+        if(c.debug){
+        	printf("SENDING: %s\n",heartbuff);
+		fflush(stdout);
+    	}
 
     }
     cnt++;
