@@ -117,6 +117,8 @@ add_executable(capybarauno_node
     src/malComm/heartbeat_payload.cpp
     src/malComm/serialStuff.cpp
 )
+
+INCLUDE_DIRECTORIES(EIGEN3_INCLUDE_DIR /usr/include/eigen3 )
 target_link_libraries(capybarauno_node ${catkin_LIBRARIES} )
 add_dependencies(capybarauno_node ${PROJECT_NAME}_gencpp)
 

@@ -1,0 +1,11 @@
+<launch>
+	<arg name="kleft" default="0.0058f" />
+	<arg name="kright" default="0.0058f" />
+	<arg name="kbaseline" default="0.305f" />
+
+	<node name="capybarauno_ticks2odo" pkg="capybarauno" type="capybarauno_ticks2odo" output="screen">
+		<param name="~kleft" value="$(arg kleft)"/> 
+		<param name="~kright" value="$(arg kright)"/> 
+		<param name="~kbaseline" value="$(arg kbaseline)"/> 
+	</node>
+</launch>

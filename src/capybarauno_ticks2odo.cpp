@@ -59,14 +59,14 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 
         float lt=(float)leftSignedTicks*atof(c.kleft.c_str());
         float rt=(float)rightSignedTicks*atof(c.kright.c_str());
-	cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
+    //cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
         float kb = atof(c.kbaseline.c_str());
         float kr = atof(c.kright.c_str());
         float kl = atof(c.kleft.c_str());
 
         float s = (lt*kl+rt*kr)/2;
-        t+=(rt*kr-lt*kl)/kb;
-	cerr << "\ttheta: "<<t<<endl;
+        t-=(rt*kr-lt*kl)/kb;
+    //cerr << "\ttheta: "<<t<<endl;
         x+=s*cos(t);
         y+=s*sin(t);
         capybarauno::capybara_ticks_signed ct;
@@ -82,9 +82,10 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 }
 
 void sendOdometry(tf::TransformBroadcaster& odom_broadcaster){
-    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(-t);
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(t);
     geometry_msgs::TransformStamped odom_trans;
-    odom_trans.header.stamp = ros::Time::now();
+    ros::Time current_time = ros::Time::now();
+    odom_trans.header.stamp = current_time;
     odom_trans.header.frame_id = c.published_odometry_topic.c_str();
     odom_trans.child_frame_id = c.published_link_name.c_str();
     odom_trans.transform.translation.x = x;
@@ -93,7 +94,7 @@ void sendOdometry(tf::TransformBroadcaster& odom_broadcaster){
     odom_trans.transform.rotation = odom_quat;
     odom_broadcaster.sendTransform(odom_trans);
     nav_msgs::Odometry odom;
-    odom.header.stamp = ros::Time::now();
+    odom.header.stamp = current_time;
     odom.header.frame_id = c.published_odom_link_name;
     odom.pose.pose.position.x = x;
     odom.pose.pose.position.y = y;
@@ -149,7 +150,7 @@ int main(int argc, char **argv)
     while(ros::ok()){
         ros::spinOnce();
         sendOdometry(odom_broadcaster);
-        usleep(10000);
+        usleep(1000);
     }
 
     return 0;
