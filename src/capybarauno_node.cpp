@@ -29,6 +29,7 @@ struct configuration{
     string subscribed_ticks_topic;
     int ascii;
     int debug;
+    int heartbeat;
 
 };
 
@@ -47,7 +48,7 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
     sendToUart(serialFd,buf,pEnd-buf,0);
     if(c.debug){
         printf("SENDING: %s\n",buf);
-	fflush(stdout);
+        fflush(stdout);
     }
 }
 
@@ -72,7 +73,7 @@ void RobotCommunication_init(){
     serialFd=openPort((char*)c.serial_device.c_str());
     if(c.debug){
         printf("serial port status: %d\n",serialFd);
-	fflush(stdout);
+        fflush(stdout);
     }
 }
 
@@ -83,9 +84,9 @@ void send_heartbeat(int &cnt){
         char* pEnd=Packet_write(&heartbeat_packet,heartbuff,c.ascii);
         sendToUart(serialFd,heartbuff,pEnd-heartbuff,0);
         if(c.debug){
-        	printf("SENDING: %s\n",heartbuff);
-		fflush(stdout);
-    	}
+            printf("SENDING: %s\n",heartbuff);
+            fflush(stdout);
+        }
 
     }
     cnt++;
@@ -97,6 +98,7 @@ void EchoParameters(){
     printf("%s %s\n","_serial_device",c.serial_device.c_str());
     printf("%s %d\n","_ascii",c.ascii);
     printf("%s %d\n","_debug",c.debug);
+    printf("%s %d\n","_hearbeat",c.heartbeat);
 }
 
 int main(int argc, char **argv)
@@ -107,6 +109,7 @@ int main(int argc, char **argv)
     n.param<string>("published_ticks_topic", c.published_ticks_topic, "/robot_ticks");
     n.param<string>("subscribed_ticks_topic", c.subscribed_ticks_topic, "/requested_ticks");
     n.param<int>("ascii", c.ascii, 1);
+    n.param<int>("heartbeat", c.heartbeat, 1);
     n.param("debug", c.debug, 1);
 
     EchoParameters();
@@ -129,7 +132,9 @@ int main(int argc, char **argv)
         ticks_message.leftEncoder = robot_data.state.leftEncoder;
         ticks_message.rightEncoder = robot_data.state.rightEncoder;
         ticks_publisher.publish(ticks_message);
-        send_heartbeat(beatcnt);
+        if(c.heartbeat==1){
+            send_heartbeat(beatcnt);
+        }
         ros::spinOnce();
         usleep(1000);
     }
@@ -137,6 +142,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-
-
