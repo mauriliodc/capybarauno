@@ -32,13 +32,13 @@ void cmdvelCallback(const geometry_msgs::Twist::ConstPtr& twist)
     if(!ros::ok()) return;
     //get absolute speed values, expressed in tick per interval
     float translational_velocity = twist->linear.x;
-    float rotational_velocity    = twist->angular.z/baseline;
+    float rotational_velocity    = -twist->angular.z*baseline;
     if(c.debug){
         ROS_INFO("LINEAR %f ANGULAR %f ANGULAR AFTER BASELINE %f", twist->linear.x, twist->angular.z,rotational_velocity);
     }
     capybarauno::capybara_ticks ct;
-    ct.leftEncoder=(-translational_velocity+rotational_velocity)*left_meter_to_ticks;
-    ct.rightEncoder=(translational_velocity+rotational_velocity)*right_meter_to_ticks;
+    ct.leftEncoder=(-translational_velocity+rotational_velocity)/left_meter_to_ticks;
+    ct.rightEncoder=(translational_velocity+rotational_velocity)/right_meter_to_ticks;
     if(c.debug){
         ROS_INFO("TICKS %d %d",ct.leftEncoder, ct.rightEncoder);
     }
