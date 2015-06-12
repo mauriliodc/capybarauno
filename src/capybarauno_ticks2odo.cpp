@@ -37,6 +37,7 @@ struct configuration{
 
 struct configuration c;
 float x,y,t=0;
+float kb,kr,kl;
 
 void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
 {
@@ -57,16 +58,17 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
         leftSignedTicks=-(int16_t)currentTicks.leftEncoder;
         rightSignedTicks=(int16_t)currentTicks.rightEncoder;
 
-        float lt=(float)leftSignedTicks*atof(c.kleft.c_str());
-        float rt=(float)rightSignedTicks*atof(c.kright.c_str());
-    //cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
-        float kb = atof(c.kbaseline.c_str());
-        float kr = atof(c.kright.c_str());
-        float kl = atof(c.kleft.c_str());
+        float lt=(float)leftSignedTicks*kl;
+        float rt=(float)rightSignedTicks*kr;
+        if(c.debug){
+            cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
+        }
 
         float s = (lt*kl+rt*kr)/2;
         t-=(rt*kr-lt*kl)/kb;
-    //cerr << "\ttheta: "<<t<<endl;
+        if(c.debug){
+            cerr << "\ttheta: "<<t<<endl;
+        }
         x+=s*cos(t);
         y+=s*sin(t);
         capybarauno::capybara_ticks_signed ct;
@@ -143,6 +145,9 @@ int main(int argc, char **argv)
 
     EchoParameters();
 
+    kb = atof(c.kbaseline.c_str());
+    kr = atof(c.kright.c_str());
+    kl = atof(c.kleft.c_str());
 
     ros::Subscriber ticks_subscriber = n.subscribe(c.subscribed_ticks_topic.c_str(), 1000, ticksCallback);
     odom_pub = n.advertise<nav_msgs::Odometry>(c.published_odometry_topic.c_str(), 1000);

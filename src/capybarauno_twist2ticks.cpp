@@ -23,6 +23,8 @@ struct configuration{
 struct configuration c;
 uint32_t tick_sequence;
 
+float left_meter_to_ticks,right_meter_to_ticks;
+
 void cmdvelCallback(const geometry_msgs::Twist::ConstPtr& twist)
 {
     if(!ros::ok()) return;
@@ -31,8 +33,8 @@ void cmdvelCallback(const geometry_msgs::Twist::ConstPtr& twist)
     int rotational_velocity    = twist->angular.z;
 
     capybarauno::capybara_ticks ct;
-    ct.leftEncoder=-translational_velocity+rotational_velocity;
-    ct.rightEncoder=translational_velocity+rotational_velocity;
+    ct.leftEncoder=(-translational_velocity+rotational_velocity)*left_meter_to_ticks;
+    ct.rightEncoder=(translational_velocity+rotational_velocity)*right_meter_to_ticks;
     ct.header.stamp=ros::Time::now();
     ct.header.seq=tick_sequence;
     tick_sequence++;
@@ -62,7 +64,8 @@ int main(int argc, char **argv)
     n.param("debug", c.debug, 1);
 
     EchoParameters();
-
+    left_meter_to_ticks = (float)c.left_meter_to_ticks;
+    right_meter_to_ticks = (float)c.right_meter_to_ticks;
 
     ros::Subscriber cmdvel_subscriber = n.subscribe(c.cmdvel_topic.c_str(), 1000, cmdvelCallback);
     ticks_publisher = n.advertise<capybarauno::capybara_ticks>(c.ticks_topic.c_str(), 1000);
