@@ -105,7 +105,6 @@ include_directories(
 ## Declare a cpp executable
 add_executable(capybarauno_node
     src/capybarauno_node.cpp
-
     src/malComm/mal_primitives.cpp
     src/malComm/mal_comm.cpp
     src/malComm/configuration_payload.cpp
@@ -120,7 +119,21 @@ add_executable(capybarauno_node
 
 INCLUDE_DIRECTORIES(EIGEN3_INCLUDE_DIR /usr/include/eigen3 )
 target_link_libraries(capybarauno_node ${catkin_LIBRARIES} )
-add_dependencies(capybarauno_node ${PROJECT_NAME}_gencpp)
+add_dependencies(capybarauno_node  ${PROJECT_NAME}_gencpp)
+
+add_executable(capybarauno_solo src/capybarauno_solo.cpp
+    src/malComm/mal_primitives.cpp
+    src/malComm/mal_comm.cpp
+    src/malComm/configuration_payload.cpp
+    src/malComm/dumb_payload.cpp
+    src/malComm/init_payload.cpp
+    src/malComm/dummy_payload.cpp
+    src/malComm/speed_payload.cpp
+    src/malComm/state_payload.cpp
+    src/malComm/heartbeat_payload.cpp
+    src/malComm/serialStuff.cpp)
+target_link_libraries(capybarauno_solo ${catkin_LIBRARIES} )
+add_dependencies(capybarauno_solo ${PROJECT_NAME}_gencpp)
 
 add_executable(capybarauno_twist2ticks src/capybarauno_twist2ticks.cpp)
 target_link_libraries(capybarauno_twist2ticks ${catkin_LIBRARIES} )
@@ -133,81 +146,6 @@ add_dependencies(capybarauno_joy2ticks ${PROJECT_NAME}_gencpp)
 add_executable(capybarauno_ticks2odo src/capybarauno_ticks2odo.cpp)
 target_link_libraries(capybarauno_ticks2odo ${catkin_LIBRARIES} )
 add_dependencies(capybarauno_ticks2odo ${PROJECT_NAME}_gencpp)
-
-
-#add_executable(capybarauno_odom_node
-#    src/capybarauno_odom_node.cpp
-#
-#    src/serial_interface.cpp
-#    src/malComm/mal_primitives.cpp
-#    src/malComm/mal_comm.cpp
-#    src/malComm/heartbeat_payload.cpp
-#    #src/malComm/configuration_payload.cpp
-#    src/malComm/dumb_payload.cpp
-#    src/malComm/init_payload.cpp
-#    src/malComm/dummy_payload.cpp
-#    src/malComm/speed_payload.cpp
-#    src/malComm/state_payload.cpp
-#    src/malComm/serialStuff.cpp
-#)
-#
-#add_executable(capybarauno_joy_node
-#    src/capybarauno_joy_node.cpp
-#
-#    src/serial_interface.cpp
-#    src/malComm/mal_primitives.cpp
-#    src/malComm/mal_comm.cpp
-#    src/malComm/heartbeat_payload.cpp
-#    #src/malComm/configuration_payload.cpp
-#    src/malComm/dumb_payload.cpp
-#    src/malComm/init_payload.cpp
-#    src/malComm/dummy_payload.cpp
-#    src/malComm/speed_payload.cpp
-#    src/malComm/state_payload.cpp
-#    src/malComm/serialStuff.cpp
-#)
-#
-#add_executable(capybarauno_robot_test
-#    src/capybarauno_robot.cpp
-#
-#    src/serial_interface.cpp
-#    src/malComm/mal_primitives.cpp
-#    src/malComm/mal_comm.cpp
-#    #src/malComm/configuration_payload.cpp
-#    src/malComm/dumb_payload.cpp
-#    src/malComm/init_payload.cpp
-#    src/malComm/dummy_payload.cpp
-#    src/malComm/speed_payload.cpp
-#    src/malComm/state_payload.cpp
-#    src/malComm/serialStuff.cpp
-#)
-#
-#
-#add_executable(capybarauno_move_test
-#    src/joy/capybarauno_move_test.cpp
-#
-#    src/serial_interface.cpp
-#    src/malComm/mal_primitives.cpp
-#    src/malComm/mal_comm.cpp
-#    src/malComm/heartbeat_payload.cpp
-#    #src/malComm/configuration_payload.cpp
-#    src/malComm/dumb_payload.cpp
-#    src/malComm/init_payload.cpp
-#    src/malComm/dummy_payload.cpp
-#    src/malComm/speed_payload.cpp
-#    src/malComm/state_payload.cpp
-#    src/malComm/serialStuff.cpp
-#)
-#
-#
-#
-#target_link_libraries(capybarauno_odom_node
-#   ${catkin_LIBRARIES}
-#)
-#
-#target_link_libraries(capybarauno_joy_node
-#   ${catkin_LIBRARIES}
-#)
 
 
 #############
