@@ -3,6 +3,7 @@
 //ros stuff
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
+#include "sensor_msgs/JointState.h"
 #include "capybarauno/capybara_ticks.h"
 #include "tf/transform_broadcaster.h"
 #include "nav_msgs/Odometry.h"
@@ -23,6 +24,7 @@ struct Packet heartbeat_packet;
 struct Heartbeat_Payload heartbeat;
 
 ros::Publisher ticks_publisher;
+ros::Publisher joint_ticks_publisher;
 ros::Publisher odom_pub;
 
 capybarauno::capybara_ticks currentTicks;
@@ -31,6 +33,7 @@ capybarauno::capybara_ticks previousTicks;
 struct configuration{
     string serial_device;
     string published_ticks_topic;
+    string published_joint_ticks_topic;
     string cmdvel_topic;
     string subscribed_ticks_topic;
     double kbaseline;
@@ -55,11 +58,11 @@ void cmdvelCallback(const geometry_msgs::Twist::ConstPtr& twist)
     if(!ros::ok()) return;
     //get absolute speed values, expressed in tick per interval
     double translational_velocity = twist->linear.x;
-    double rotational_velocity    = -twist->angular.z;
+    double rotational_velocity    = -twist->angular.z/(c.kbaseline*2);
     capybarauno::capybara_ticks ct;
-    ct.leftEncoder=(uint16_t)((-translational_velocity+rotational_velocity));
-    ct.rightEncoder=(uint16_t)((translational_velocity+rotational_velocity));
-    ROS_INFO("CMDVEL %f %f %f %f",twist->linear.x,twist->angular.z,ct.leftEncoder/c.kleft,ct.rightEncoder/c.kleft);
+    ct.leftEncoder=(uint16_t)((-translational_velocity+rotational_velocity)/(c.kleft*1000));
+    ct.rightEncoder=(uint16_t)((translational_velocity+rotational_velocity)/(c.kright*1000));
+    //ROS_INFO("CMDVEL %f %f %d %d",twist->linear.x,twist->angular.z,ct.leftEncoder,ct.rightEncoder);
     speedPayload.leftTick=ct.leftEncoder;
     speedPayload.rightTick=ct.rightEncoder;
     packet.speed=speedPayload;
@@ -132,7 +135,7 @@ void sendOdometry(tf::TransformBroadcaster& odom_broadcaster, capybarauno::capyb
     t-=(right-left)/c.kbaseline;
     x+=s*cos(t);
     y+=s*sin(t);
-    //ROS_INFO("ODOM: %d %d   ",ult,urt);
+    ROS_INFO("ODOM: %f",t);
 
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(t);
     geometry_msgs::TransformStamped odom_trans;
@@ -159,13 +162,14 @@ void sendOdometry(tf::TransformBroadcaster& odom_broadcaster, capybarauno::capyb
 
 void EchoParameters(){
     printf("%s %s\n","_published_ticks_topic",c.published_ticks_topic.c_str());
+    printf("%s %s\n","_published_joint_ticks_topic",c.published_joint_ticks_topic.c_str());
     printf("%s %s\n","_subscribed_ticks_topic",c.subscribed_ticks_topic.c_str());
     printf("%s %s\n","_serial_device",c.serial_device.c_str());
     printf("%s %s\n","_published_odometry_topic",c.published_odometry_topic.c_str());
     printf("%s %s\n","_published_link_name",c.published_link_name.c_str());
     printf("%s %s\n","_published_odom_link_name",c.published_odom_link_name.c_str());
     printf("%s %f\n","_kleft",c.kleft);
-    printf("%s %f\n","_right",c.kleft);
+    printf("%s %f\n","_kright",c.kright);
     printf("%s %f\n","_baseline",c.kbaseline);
     printf("%s %d\n","_ascii",c.ascii);
     printf("%s %d\n","_debug",c.debug);
@@ -179,6 +183,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n("~");
     n.param<string>("serial_device", c.serial_device, "/dev/ttyACM0");
     n.param<string>("published_ticks_topic", c.published_ticks_topic, "/robot_ticks");
+    n.param<string>("published_joint_ticks_topic", c.published_joint_ticks_topic, "/joint_robot_ticks");
     n.param<string>("cmdvel_topic", c.cmdvel_topic, "/cmd_vel");
     n.param<string>("published_odometry_topic", c.published_odometry_topic, "/odom");
     n.param<string>("published_link_name", c.published_link_name, "/base_link");
@@ -204,17 +209,24 @@ int main(int argc, char **argv)
     currentTicks.rightEncoder=0;
     ros::Subscriber cmdvel_subscriber = n.subscribe(c.cmdvel_topic.c_str(), 1000, cmdvelCallback);
     ticks_publisher = n.advertise<capybarauno::capybara_ticks>(c.published_ticks_topic.c_str(), 1000);
+    joint_ticks_publisher = n.advertise<sensor_msgs::JointState>(c.published_joint_ticks_topic.c_str(), 1000);
     odom_pub = n.advertise<nav_msgs::Odometry>(c.published_odometry_topic.c_str(), 1000);
     //ros::ok() used to get the SIGINT ctrl+c
     while(ros::ok()){
         Packet robot_data = read_ticks_from_uart(serialFd,packet_decoder);
         capybarauno::capybara_ticks currentTicks;
-
+        sensor_msgs::JointState currentJointTicks;
         currentTicks.header.seq = robot_data.seq;
         currentTicks.header.stamp = ros::Time::now();
         currentTicks.leftEncoder = robot_data.state.leftEncoder;
         currentTicks.rightEncoder = robot_data.state.rightEncoder;
-        //ROS_INFO("TICKS %d %d",currentTicks.leftEncoder,currentTicks.rightEncoder);
+        currentJointTicks.name.resize(2);
+        currentJointTicks.position.resize(2);
+        currentJointTicks.name[0]="left";
+        currentJointTicks.name[1]="right";
+        currentJointTicks.position[0]=(double)robot_data.state.leftEncoder;
+        currentJointTicks.position[1]=(double)robot_data.state.rightEncoder;
+        joint_ticks_publisher.publish(currentJointTicks);
         ticks_publisher.publish(currentTicks);
         sendOdometry(odom_broadcaster,currentTicks);
         if(c.heartbeat==1){
