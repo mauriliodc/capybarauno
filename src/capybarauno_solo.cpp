@@ -30,6 +30,9 @@ ros::Publisher odom_pub;
 capybarauno::capybara_ticks currentTicks;
 capybarauno::capybara_ticks previousTicks;
 
+unsigned int _oldLeft=0;
+unsigned int _oldRight=0;
+
 struct configuration{
     string serial_device;
     string published_ticks_topic;
@@ -220,12 +223,18 @@ int main(int argc, char **argv)
         currentTicks.header.stamp = ros::Time::now();
         currentTicks.leftEncoder = robot_data.state.leftEncoder;
         currentTicks.rightEncoder = robot_data.state.rightEncoder;
-        currentJointTicks.name.resize(2);
-        currentJointTicks.position.resize(2);
-        currentJointTicks.name[0]="left";
-        currentJointTicks.name[1]="right";
-        currentJointTicks.position[0]=(double)robot_data.state.leftEncoder;
-        currentJointTicks.position[1]=(double)robot_data.state.rightEncoder;
+        currentJointTicks.name.resize(4);
+        currentJointTicks.position.resize(4);
+        currentJointTicks.name[0]="left signed";
+        currentJointTicks.name[1]="right signed";
+        currentJointTicks.name[2]="left";
+        currentJointTicks.name[3]="right";
+        currentJointTicks.position[0]=(double)(-(signed int)((_oldLeft-robot_data.state.leftEncoder)));
+        currentJointTicks.position[1]=(double)(signed int)(_oldRight-robot_data.state.rightEncoder);
+        currentJointTicks.position[2]=(double)robot_data.state.leftEncoder;
+        currentJointTicks.position[3]=(double)robot_data.state.rightEncoder;
+        _oldLeft = robot_data.state.leftEncoder;
+        _oldRight = robot_data.state.rightEncoder;
         joint_ticks_publisher.publish(currentJointTicks);
         ticks_publisher.publish(currentTicks);
         sendOdometry(odom_broadcaster,currentTicks);
@@ -239,3 +248,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
