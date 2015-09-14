@@ -32,7 +32,8 @@ capybarauno::capybara_ticks previousTicks;
 
 unsigned int _oldLeft=0;
 unsigned int _oldRight=0;
-
+double _oldJointLeft=0;
+double _oldJointRight=0;
 struct configuration{
     string serial_device;
     string published_ticks_topic;
@@ -231,8 +232,10 @@ int main(int argc, char **argv)
         currentJointTicks.name[3]="right";
         currentJointTicks.position[0]=(double)(-(signed int)((_oldLeft-robot_data.state.leftEncoder)));
         currentJointTicks.position[1]=(double)(signed int)(_oldRight-robot_data.state.rightEncoder);
-        currentJointTicks.position[2]=(double)robot_data.state.leftEncoder;
-        currentJointTicks.position[3]=(double)robot_data.state.rightEncoder;
+        currentJointTicks.position[2]=_oldJointLeft+(double)robot_data.state.leftEncoder;
+        currentJointTicks.position[3]=_oldJointRight+(double)robot_data.state.rightEncoder;
+        _oldJointLeft = currentJointTicks.position[2];
+        _oldJointRight = currentJointTicks.position[3];
         _oldLeft = robot_data.state.leftEncoder;
         _oldRight = robot_data.state.rightEncoder;
         joint_ticks_publisher.publish(currentJointTicks);
