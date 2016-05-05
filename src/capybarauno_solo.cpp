@@ -62,10 +62,13 @@ void cmdvelCallback(const geometry_msgs::Twist::ConstPtr& twist)
     if(!ros::ok()) return;
     //get absolute speed values, expressed in tick per interval
     double translational_velocity = twist->linear.x;
-    double rotational_velocity    = -twist->angular.z/(c.kbaseline*2);
+    double rotational_velocity    = -twist->angular.z*(c.kbaseline/2);
     capybarauno::capybara_ticks ct;
-    ct.leftEncoder=(uint16_t)((-translational_velocity+rotational_velocity)/(c.kleft*1000));
-    ct.rightEncoder=(uint16_t)((translational_velocity+rotational_velocity)/(c.kright*1000));
+    //BananaPI is unable to convert directly from float to uint16_t
+    int left_enc = (int)((-translational_velocity+rotational_velocity)/(c.kleft*1000));
+    ct.leftEncoder=(uint16_t)left_enc;
+    int right_enc = (int)((translational_velocity+rotational_velocity)/(c.kright*1000));
+    ct.rightEncoder=(uint16_t)right_enc;
     //ROS_INFO("CMDVEL %f %f %d %d",twist->linear.x,twist->angular.z,ct.leftEncoder,ct.rightEncoder);
     speedPayload.leftTick=ct.leftEncoder;
     speedPayload.rightTick=ct.rightEncoder;
@@ -139,7 +142,7 @@ void sendOdometry(tf::TransformBroadcaster& odom_broadcaster, capybarauno::capyb
     t-=(right-left)/c.kbaseline;
     x+=s*cos(t);
     y+=s*sin(t);
-    ROS_INFO("ODOM: %f",t);
+    //ROS_INFO("ODOM: %f",t);
 
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(t);
     geometry_msgs::TransformStamped odom_trans;
@@ -174,7 +177,7 @@ void EchoParameters(){
     printf("%s %s\n","_published_odom_link_name",c.published_odom_link_name.c_str());
     printf("%s %f\n","_kleft",c.kleft);
     printf("%s %f\n","_kright",c.kright);
-    printf("%s %f\n","_baseline",c.kbaseline);
+    printf("%s %f\n","_kbaseline",c.kbaseline);
     printf("%s %d\n","_ascii",c.ascii);
     printf("%s %d\n","_debug",c.debug);
     printf("%s %d\n","_hearbeat",c.heartbeat);
@@ -185,17 +188,17 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "capybarauno_node",ros::init_options::AnonymousName);
     tf::TransformBroadcaster odom_broadcaster;
     ros::NodeHandle n("~");
-    n.param<string>("serial_device", c.serial_device, "/dev/ttyACM0");
+    n.param<string>("serial_device", c.serial_device, "/dev/ttyUSB0");
     n.param<string>("published_ticks_topic", c.published_ticks_topic, "/robot_ticks");
     n.param<string>("published_joint_ticks_topic", c.published_joint_ticks_topic, "/joint_robot_ticks");
     n.param<string>("cmdvel_topic", c.cmdvel_topic, "/cmd_vel");
     n.param<string>("published_odometry_topic", c.published_odometry_topic, "/odom");
     n.param<string>("published_link_name", c.published_link_name, "/base_link");
     n.param<string>("published_odom_link_name", c.published_odom_link_name, "/odom");
-    n.param<double>("kleft", c.kleft, 0.0058);
-    n.param<double>("kright", c.kright, 0.0058);
-    n.param<double>("kbaseline", c.kbaseline, 0.2);
-    n.param<int>("ascii", c.ascii, 1);
+    n.param<double>("kleft", c.kleft, 0.000014);
+    n.param<double>("kright", c.kright, 0.000014);
+    n.param<double>("kbaseline", c.kbaseline, 0.36);
+    n.param<int>("ascii", c.ascii, 0);
     n.param<int>("heartbeat", c.heartbeat, 1);
     n.param("debug", c.debug, 1);
 
