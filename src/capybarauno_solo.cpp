@@ -233,10 +233,21 @@ int main(int argc, char **argv)
         currentJointTicks.name[1]="right signed";
         currentJointTicks.name[2]="left";
         currentJointTicks.name[3]="right";
-        currentJointTicks.position[0]=(double)(-(signed int)((_oldLeft-robot_data.state.leftEncoder)));
-        currentJointTicks.position[1]=(double)(signed int)(_oldRight-robot_data.state.rightEncoder);
-        currentJointTicks.position[2]=_oldJointLeft+(double)robot_data.state.leftEncoder;
-        currentJointTicks.position[3]=_oldJointRight+(double)robot_data.state.rightEncoder;
+
+	//this conversion can be done for sure in a more efficient and compact way
+	uint16_t left_relative_ticks = robot_data.state.leftEncoder - _oldLeft;
+	uint16_t right_relative_ticks = robot_data.state.rightEncoder - _oldRight;
+	int16_t left_relative_signed = -(int16_t)left_relative_ticks;
+	int16_t right_relative_signed = (int16_t)right_relative_ticks;
+
+	currentJointTicks.position[0]=(double)left_relative_signed;
+	currentJointTicks.position[1]=(double)right_relative_signed;
+
+	//        currentJointTicks.position[0]=(double)(-(signed int)((_oldLeft-robot_data.state.leftEncoder)));
+	//        currentJointTicks.position[1]=(double)(signed int)(_oldRight-robot_data.state.rightEncoder);
+	
+        currentJointTicks.position[2]=_oldJointLeft+currentJointTicks.position[0]; //+(double)robot_data.state.leftEncoder;
+        currentJointTicks.position[3]=_oldJointRight+currentJointTicks.position[1]; //+(double)robot_data.state.rightEncoder;
         _oldJointLeft = currentJointTicks.position[2];
         _oldJointRight = currentJointTicks.position[3];
         _oldLeft = robot_data.state.leftEncoder;
