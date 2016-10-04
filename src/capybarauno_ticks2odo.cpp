@@ -64,8 +64,8 @@ void ticksCallback(const capybarauno::capybara_ticksConstPtr& ticks)
             cerr << "lt: "<<lt<<" rt: "<<rt<<endl;
         }
 
-        float s = (lt*kl+rt*kr)/2;
-        t-=(rt*kr-lt*kl)/kb;
+        float s = (lt+rt)/2;
+        t-=(rt-lt)/kb;
         if(c.debug){
             cerr << "\ttheta: "<<t<<endl;
         }
